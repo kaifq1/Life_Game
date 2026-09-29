@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Life | MuSo Financial Literacy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Palette: cream is MuSo's site theme colour; teal, navy, gold and green follow the board template */
+:root{
+  --cream:#F8F3ED; --parchment:#F1E8D8; --ink:#1B2B40; --muted:#5B6878;
+  --navy:#1B2B40; --teal:#2E7D77; --teal-soft:#CFE3DE; --gold:#C9A14A; --gold-soft:#EBD49A;
+  --green:#16B364; --rose:#D96A5B;
+  --page:#E9E1D3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --page:#101B2B; } }
+:root[data-theme="dark"]{ --page:#101B2B; }
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none !important}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0; min-height:100%; background:var(--page); color:var(--ink); font-family:"Poppins","Nirmala UI","Segoe UI",system-ui,sans-serif; font-size:16px; line-height:1.4}
+button{font:inherit; cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
+
+.frame{background:var(--cream); border:10px solid var(--navy); outline:2px solid var(--gold); outline-offset:-16px; border-radius:6px}
+.btn{border:0; border-radius:999px; padding:10px 22px; font-weight:700; background:var(--parchment); color:var(--ink); box-shadow:inset 0 0 0 2px var(--gold)}
+.btn:hover:not([disabled]){background:var(--gold-soft)}
+.btn[disabled]{opacity:.4; cursor:not-allowed}
+.btn.main{background:var(--navy); color:var(--gold-soft); box-shadow:inset 0 0 0 2px var(--gold)}
+.btn.main:hover:not([disabled]){background:#24395A}
+.link{background:none; border:0; color:var(--muted); text-decoration:underline; font-size:.85rem; padding:4px}
+
+/* Setup */
+#setup{min-height:100vh; display:grid; place-items:center; padding:20px}
+#setup .frame{width:min(760px,100%); padding:44px 48px 40px}
+.bigtitle{font-size:clamp(4rem,10vw,6.5rem); font-weight:800; color:var(--green); line-height:.9; margin:0; letter-spacing:-3px}
+.tag{font-weight:700; font-size:1.15rem; margin:10px 0 4px}
+.intro{color:var(--muted); max-width:56ch; margin:0 0 26px}
+.countrow{display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; font-weight:700}
+.countrow .btn{width:48px; height:48px; padding:0}
+.countrow .btn.on{background:var(--navy); color:var(--gold-soft)}
+.pl{display:grid; grid-template-columns:40px 1fr 1.3fr; gap:12px; align-items:center; margin-bottom:12px}
+.pl .dot{width:34px; height:34px; border-radius:50%; border:3px solid var(--cream); box-shadow:0 0 0 2px var(--navy)}
+.pl input{font:inherit; padding:11px 14px; border:0; border-bottom:2.5px solid var(--gold); background:var(--parchment); border-radius:10px 10px 0 0; color:var(--ink); width:100%}
+.pl input::placeholder{color:#8B8577}
+#startBtn{margin-top:18px; font-size:1.15rem; padding:13px 34px}
+
+/* Game */
+#game{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:16px; padding:14px; align-items:start; max-width:1600px; margin:0 auto}
+.boardwrap{padding:0; overflow:hidden; line-height:0}
+#board{width:100%; height:auto; display:block}
+.tile-label{font-family:"Poppins",system-ui,sans-serif; font-weight:700; font-size:10px; pointer-events:none}
+.tok{transition:transform .25s ease-out}
+.tok.now circle{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{stroke-width:5}}
+
+.side{padding:22px 20px 16px}
+.now{text-align:center; padding-bottom:16px; border-bottom:1.5px solid var(--gold)}
+.now small{color:var(--muted); font-weight:600}
+.now .who{font-size:1.6rem; font-weight:800; line-height:1.15}
+.now .job{color:var(--muted); font-size:.9rem}
+.die{width:84px; height:84px; margin:14px auto; background:#fff; border-radius:16px; box-shadow:0 0 0 3px var(--navy), 4px 5px 0 3px var(--gold); display:grid; grid-template:repeat(3,1fr)/repeat(3,1fr); padding:11px; transition:transform .07s}
+.die.wob{transform:rotate(-10deg)}
+.pip{width:14px; height:14px; border-radius:50%; place-self:center}
+.pip.on{background:var(--navy)}
+#rollBtn{font-size:1.15rem; padding:12px 30px}
+.plist{margin-top:6px}
+.prow{padding:12px 4px; border-bottom:1px dashed #D6C9AE; opacity:.8}
+.prow.active{opacity:1}
+.prow .top{display:flex; align-items:center; gap:10px; font-weight:700}
+.prow .top .d{width:22px; height:22px; border-radius:50%; flex:none; box-shadow:0 0 0 2px var(--navy)}
+.prow .top small{font-weight:500; color:var(--muted)}
+.prow.active .top{font-size:1.08rem}
+.prow .m{display:flex; flex-wrap:wrap; gap:2px 14px; font-size:.86rem; margin:4px 0 4px 32px}
+.prow .m span{white-space:nowrap}
+.prow .m b{font-weight:700}
+.prow .m .loan b{color:var(--rose)}
+.prow .s{display:flex; gap:5px; flex-wrap:wrap; margin-left:32px; font-size:.7rem; font-weight:600}
+.prow .s span{padding:1px 8px; border-radius:99px; color:var(--muted); box-shadow:inset 0 0 0 1px #CDBF9F}
+.prow .s span.on{background:var(--teal); color:#fff; box-shadow:none}
+.prow .s span.dream.on{background:var(--green)}
+.legend{display:flex; flex-wrap:wrap; gap:4px 12px; font-size:.75rem; color:var(--muted); margin-top:14px; font-weight:600}
+.legend i{display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px; box-shadow:0 0 0 1px #9C8E70}
+.foot{text-align:center; margin-top:10px}
+
+/* Modal */
+#overlay{position:fixed; inset:0; background:rgba(16,27,43,.6); display:grid; place-items:center; z-index:10; padding:16px}
+#overlay[hidden]{display:none}
+.modal{width:min(620px,100%); padding:34px 38px 30px; animation:pop .2s ease-out}
+@keyframes pop{from{transform:scale(.94); opacity:0}}
+.chip{display:inline-block; font-size:.8rem; font-weight:700; padding:3px 12px; border-radius:99px; margin-bottom:8px}
+.modal h2{margin:0 0 8px; font-size:clamp(1.5rem,2.6vw,2rem); line-height:1.15}
+.mbody{font-size:clamp(1.05rem,1.6vw,1.22rem); max-width:56ch; margin-bottom:22px}
+.mbody b{white-space:nowrap}
+#mOpts{display:flex; flex-wrap:wrap; gap:10px}
+.modal .who{float:right; font-size:.85rem; color:var(--muted); font-weight:600}
+
+/* End */
+.tabs{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 4px}
+.tabs .btn.on{background:var(--navy); color:var(--gold-soft)}
+.rhead{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:16px 0 6px}
+.rhead h3{margin:0; font-size:1.5rem}
+.badge{font-weight:700; font-size:.9rem; padding:4px 14px; border-radius:99px; background:var(--green); color:#fff}
+.badge.mid{background:var(--gold); color:var(--navy)}
+.badge.low{background:var(--rose)}
+.nums{display:flex; flex-wrap:wrap; gap:14px 40px; margin:12px 0 6px}
+.nums div span{display:block; font-size:.85rem; color:var(--muted); font-weight:600}
+.nums div b{font-size:1.9rem; line-height:1.1}
+.nums .could b{color:var(--green)}
+.says{font-size:1.1rem; max-width:62ch; margin:4px 0 16px}
+.lists{display:grid; grid-template-columns:1fr 1fr; gap:10px 34px}
+.lists h4{margin:6px 0 6px; font-size:1.05rem}
+.lists h4.g{color:var(--teal)} .lists h4.c{color:var(--rose)} .lists h4.l{color:var(--muted)}
+.lists ul{list-style:none; margin:0 0 10px; padding:0}
+.lists li{display:flex; justify-content:space-between; gap:14px; padding:6px 0; border-bottom:1px dashed #D6C9AE; font-size:.95rem}
+.lists li b{white-space:nowrap}
+.lists .empty{color:var(--muted); font-size:.95rem}
+.ask{margin-top:14px; padding:14px 18px; background:var(--parchment); border-radius:12px; font-weight:600; font-size:1.05rem}
+@media (max-width:700px){ .lists{grid-template-columns:1fr} }
+#end{min-height:100vh; display:grid; place-items:center; padding:20px}
+#end .frame{width:min(820px,100%); padding:40px 44px}
+#end h2{font-size:clamp(1.6rem,3vw,2.3rem); margin:0 0 6px; line-height:1.15}
+.tablewrap{overflow-x:auto; margin:18px 0}
+table{border-collapse:collapse; width:100%; min-width:520px}
+th,td{text-align:left; padding:9px 10px; border-bottom:1px dashed #D6C9AE}
+th{font-size:.8rem; color:var(--muted); font-weight:600}
+tr.win td{font-weight:800}
+tr.win td:first-child{color:var(--green)}
+.lessons{columns:2 260px; column-gap:28px; color:var(--ink)}
+.lessons p{margin:0 0 10px; break-inside:avoid}
+
+@media (max-width:1000px){ #game{grid-template-columns:1fr} }
+@media (max-width:560px){ #setup .frame,#end .frame{padding:30px 22px} .pl{grid-template-columns:30px 1fr} .pl input:last-child{grid-column:2} .modal{padding:26px 22px} }
+@media (prefers-reduced-motion:reduce){ .tok{transition:none} .tok.now circle,.modal{animation:none} }
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <div class="frame">
+    <h1 class="bigtitle">Life</h1>
+    <p class="tag">Choose your path. Build your story.</p>
+    <p class="intro">Each player is a family. Roll the dice, move, and make a choice. On pay day you get Rs 20,000 and pay Rs 12,000 for home costs. At the end, you will see how your choices changed your life.</p>
+    <div class="countrow">How many players?
+      <button class="btn" data-n="1">1</button>
+      <button class="btn on" data-n="2">2</button>
+      <button class="btn" data-n="3">3</button>
+      <button class="btn" data-n="4">4</button>
+    </div>
+    <div id="plRows"></div>
+    <button class="btn main" id="startBtn">Start the game</button>
+  </div>
+</section>
+
+<section id="game" hidden>
+  <div class="frame boardwrap">
+    <svg id="board" viewBox="0 0 1000 640" role="img" aria-label="Game board: a winding path from Start to Finish"></svg>
+  </div>
+  <aside class="frame side">
+    <div class="now">
+      <small>Now playing</small>
+      <div class="who" id="nowName">-</div>
+      <div class="job" id="nowJob"></div>
+      <div class="die" id="die"></div>
+      <button class="btn main" id="rollBtn">Roll the dice</button>
+    </div>
+    <div class="plist" id="plist"></div>
+    <div class="legend" id="legend"></div>
+    <div class="foot"><button class="link" id="restartBtn">Restart game</button></div>
+  </aside>
+</section>
+
+<section id="end" hidden>
+  <div class="frame">
+    <h2 id="winnerLine"></h2>
+    <p class="intro" style="margin:0">Life Score = money you have (cash + bank - loans) + Rs 15,000 if you reached your family dream + Rs 2,000 for each safety shield (Jan Dhan, PMSBY, PMJJBY, Ayushman).</p>
+    <div class="tabs" id="tabs"></div>
+    <div id="reflect"></div>
+    <div id="allScores"></div>
+    <p style="margin-top:22px"><button class="btn main" id="againBtn">Play again</button></p>
+  </div>
+</section>
+
+<div id="overlay" hidden>
+  <div class="modal frame" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <span class="who" id="mWho"></span>
+    <span class="chip" id="mChip"></span>
+    <h2 id="mTitle"></h2>
+    <div class="mbody" id="mBody"></div>
+    <div id="mOpts"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const sleep = ms => new Promise(r => setTimeout(r, reduceMotion ? 0 : ms));
+const fmt = n => "Rs\u00A0" + Math.round(n).toLocaleString("en-IN");
+const B = n => "<b>" + fmt(n) + "</b>";
+const round100 = n => Math.round(n / 100) * 100;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* Fair dice: crypto random bytes with rejection sampling, so every face is exactly 1 in 6 */
+function rollDie(){
+  const a = new Uint8Array(1); let x;
+  do { crypto.getRandomValues(a); x = a[0]; } while (x >= 252);
+  return (x % 6) + 1;
+}
+
+const SALARY = 20000, HOUSEHOLD = 12000, START_CASH = 5000, GOAL_COST = 10000, GOAL_BONUS = 15000, SHIELD_BONUS = 2000;
+const TOKEN_COLORS = ["#D96A5B", "#2E7D77", "#C9A14A", "#6B5BD9"];
+const CATS = {
+  start:{label:"Start", fill:"#1B2B40", text:"#EBD49A"}, finish:{label:"Finish", fill:"#1B2B40", text:"#EBD49A"},
+  payday:{label:"Money in", fill:"#D9B45A", text:"#1B2B40"}, good:{label:"Money in", fill:"#D9B45A", text:"#1B2B40"},
+  expense:{label:"Spending", fill:"#F4ECDD", text:"#1B2B40"},
+  bank:{label:"Bank and schemes", fill:"#2E7D77", text:"#FFFFFF"},
+  trouble:{label:"Trouble", fill:"#1B2B40", text:"#F4ECDD"},
+  choice:{label:"Your choice", fill:"#BFDCD5", text:"#1B2B40"},
+  huddle:{label:"Family talk", fill:"#9FD8B5", text:"#1B2B40"}
+};
+let players = [], cur = 0, busy = false, nPlayers = 2;
+
+/* Story tracking: every choice and every piece of bad luck is written down for the end screen.
+   kind: "good" = smart choice, "cost" = a choice that cost you, "luck" = bad luck, not your fault.
+   amt: how much it cost. score:true means it cost Life Score points, not rupees in hand. */
+function note(p, kind, text, amt, scoreOnly){ p.story.push({kind:kind, text:text, amt:amt || 0, scoreOnly:!!scoreOnly}); }
+
+/* Money helpers */
+function pay(p, amt){
+  let left = amt;
+  const fromCash = Math.min(Math.max(p.cash,0), left); p.cash -= fromCash; left -= fromCash;
+  let fromBank = 0;
+  if (left > 0 && p.bank > 0){ fromBank = Math.min(p.bank, left); p.bank -= fromBank; left -= fromBank; }
+  let msg = "You paid " + B(amt) + ".";
+  if (fromBank) msg += " " + B(fromBank) + " came from your bank savings.";
+  if (left > 0){
+    if (p.hasAccount){
+      const owed = round100(left * 1.1); p.debt += owed;
+      msg += " You did not have enough money, so the bank gave you a small loan. You must pay back " + B(owed) + ".";
+    } else {
+      const owed = round100(left * 1.5); p.debt += owed;
+      note(p, "cost", "Borrowed from a moneylender because you had no bank account. A bank loan would have cost less.", owed - round100(left * 1.1));
+      msg += " You did not have enough money. With no bank account, you went to a moneylender. You must pay back " + B(owed) + ". That is 50% extra!";
+    }
+  }
+  return msg;
+}
+function needsAccount(p, scheme){
+  return {title:"You need a bank account", body:"You can join " + scheme + " only with a bank account. Your family does not have one yet. A Bank Mitra may visit later in the game.", options:[{label:"OK", act:() => {
+    note(p, "cost", "Could not join " + scheme + " because you had no bank account.", SHIELD_BONUS, true);
+    return "Without a bank account, your family misses this safety shield.";
+  }}]};
+}
+function expense(s, title, amt, why){
+  return {cat:"expense", s:s, run:p => ({title:title, body:why + " Cost: " + B(amt) + ".", options:[{label:"Pay " + fmt(amt), act:() => pay(p, amt)}]})};
+}
+function huddle(q){
+  return {cat:"huddle", s:"Family talk", run:p => ({title:"Family talk time", body:q + "<br><br>Talk for one minute. Then press the button.", options:[{label:"We talked (+Rs 500)", act:() => {
+    p.cash += 500; p.talks++;
+    return "Great teamwork! Families who talk about money make better choices. You get " + B(500) + ".";
+  }}]})};
+}
+function hospital(s, title, amt, story){
+  return {cat:"trouble", s:s, run:p => {
+    if (p.ayushman) return {title:title, body:story + " The bill is " + B(amt) + ".", options:[{label:"Show Ayushman card", act:() => {
+      note(p, "good", "Your Ayushman card paid a " + fmt(amt) + " hospital bill.");
+      return "Your Ayushman card pays the hospital bill. Your family pays " + B(0) + "!";
+    }}]};
+    return {title:title, body:story + " The bill is " + B(amt) + ". Your family has no Ayushman card.", options:[{label:"Pay " + fmt(amt), act:() => {
+      if (p.skippedAyushman) note(p, "cost", "Paid a " + fmt(amt) + " hospital bill. The free Ayushman card you skipped would have paid it.", amt);
+      else note(p, "luck", "Hospital bill of " + fmt(amt) + ". You never landed on the Ayushman card tile.", amt);
+      return pay(p, amt) + (p.skippedAyushman ? " The free Ayushman card would have paid this." : "");
+    }}]};
+  }};
+}
+function cashLoss(p, lost, how){
+  if (lost <= 0) return;
+  if (p.hasAccount) note(p, "cost", "Kept " + fmt(lost) + " at home and lost it to " + how + ". Money in the bank was safe.", lost);
+  else note(p, "cost", "Lost " + fmt(lost) + " at home to " + how + ". With a bank account, it could have been safe.", lost);
+}
+function paydaySpec(p, passing){
+  let left = SALARY - HOUSEHOLD;
+  p.paydays++;
+  let body = (passing ? "You passed Pay Day. " : "") + "You earned " + B(SALARY) + ". Home costs (rent, food, travel, bills) are " + B(HOUSEHOLD) + ".";
+  if (p.debt > 0){ const r = Math.min(p.debt, left); p.debt -= r; left -= r; body += " First you pay back your loan: " + B(r) + "."; }
+  p.cash += left;
+  body += " Money left: " + B(left) + ".";
+  if (!p.hasAccount){
+    body += "<br><br>You have no bank account, so all your money stays at home.";
+    return {title:"Pay day!", body:body, options:[{label:"OK"}]};
+  }
+  body += "<br><br>How much will you put in your Jan Dhan account?";
+  const opt = n => ({label: n ? "Save " + fmt(n) : "Save nothing", disabled: p.cash < n, act:() => {
+    p.cash -= n; p.bank += n; p.saved += n;
+    return n ? "You saved " + B(n) + ". It is safe in the bank." : "No saving this time. Your money stays at home.";
+  }});
+  return {title:"Pay day!", body:body, options:[opt(0), opt(2000), opt(5000)]};
+}
+function openAccount(p, late){
+  p.hasAccount = true;
+  note(p, "good", late ? "Opened a Jan Dhan account (a little late)." : "Opened a Jan Dhan account at the start.");
+  return "Account opened! Now you can keep money safe, get government money straight into the bank, and join cheap insurance.";
+}
+
+/* The board: 40 tiles */
+const TILES = [
+  {cat:"start", s:"Start", run:p => ({title:"Start", body:"", options:[]})},
+  expense("School books", "New school year", 1500, "Buy a school bag and books."),
+  {cat:"bank", s:"Jan Dhan bank", stop:true, run:p => ({title:"Open a Jan Dhan account?",
+    body:"You are at the bank. A Jan Dhan account is free. You do not need to keep any money in it. You also get a free RuPay card.<br><br>You need: Aadhaar card and one photo.",
+    options:[
+      {label:"Open account", act:() => openAccount(p, false)},
+      {label:"Not now", act:() => { note(p, "cost", "Did not open a bank account at the start."); return "Okay. Your money stays at home for now."; }}
+    ]})},
+  huddle("Ask your parent: What does our family spend the most money on every month?"),
+  {cat:"payday", s:"Pay day", run:p => paydaySpec(p, false)},
+  {cat:"choice", s:"New phone", run:p => ({title:"Your phone broke", body:"You need a new phone. Which one will you buy?", options:[
+    {label:"Simple phone, Rs 3,000", act:() => { note(p, "good", "Bought a simple phone instead of a costly one."); return pay(p, 3000) + " It can call, message and do UPI. Smart choice."; }},
+    {label:"Fancy phone, Rs 12,000", act:() => { note(p, "cost", "Bought a fancy phone. A simple phone would have saved money.", 9000); return pay(p, 12000) + " It looks cool, but that money could help your family dream."; }}
+  ]})},
+  {cat:"bank", s:"Scholarship", run:p => p.hasAccount
+    ? {title:"You won a scholarship!", body:"The government sends " + B(5000) + " straight into your bank account.", options:[{label:"Collect", act:() => {
+        p.bank += 5000; note(p, "good", "Got a Rs 5,000 scholarship because you had a bank account.");
+        return B(5000) + " came into your Jan Dhan account.";
+      }}]}
+    : {title:"You won a scholarship!", body:"The government sends " + B(5000) + " straight into a bank account. But your family has no bank account.", options:[{label:"OK", act:() => {
+        note(p, "cost", "Missed a Rs 5,000 scholarship because you had no bank account.", 5000);
+        return "The money could not reach you. You lost " + B(5000) + " only because you had no account.";
+      }}]}},
+  {cat:"bank", s:"PMSBY", run:p => p.hasAccount
+    ? {title:"Accident insurance (PMSBY)", body:"Pay just " + B(20) + " a year. If the earning person has a serious accident, the family gets up to " + B(200000) + ". The money is taken from your bank account.", options:[
+        {label:"Join for Rs 20", act:() => { p.pmsby = true; note(p, "good", "Joined PMSBY accident insurance for Rs 20."); return pay(p, 20) + " Your family is now protected."; }},
+        {label:"Skip", act:() => { note(p, "cost", "Skipped PMSBY accident insurance to save Rs 20.", SHIELD_BONUS - 20, true); return "Okay. It costs less than one plate of vada pav a year."; }}]}
+    : needsAccount(p, "PMSBY accident insurance")},
+  {cat:"choice", s:"Festival", run:p => ({title:"Festival shopping", body:"The festival is here. How will you celebrate?", options:[
+    {label:"Simple, Rs 1,000", act:() => { note(p, "good", "Kept the festival simple."); return pay(p, 1000) + " Sweets, a small gift, and lots of fun together."; }},
+    {label:"Big, Rs 5,000", act:() => { note(p, "cost", "Spent big on the festival.", 4000); return pay(p, 5000) + " A grand festival! But it cost a lot."; }}
+  ]})},
+  {cat:"trouble", s:"OTP call", run:p => ({title:"A strange phone call", body:"\"Hello, I am from the bank. You won a prize! Tell me the OTP on your phone.\"", options:[
+    {label:"Tell the OTP", act:() => {
+      if (!p.hasAccount || p.bank <= 0){ note(p, "cost", "Told your OTP to a stranger. Lucky: there was no money to steal."); return "Lucky: there was nothing to steal. But banks never ask for OTP or PIN."; }
+      const lost = Math.min(p.bank, 5000); p.bank -= lost;
+      note(p, "cost", "Told your OTP to a stranger. A thief took money from your bank.", lost);
+      return "It was a thief! " + B(lost) + " was taken from your bank account. Banks never ask for OTP or PIN.";
+    }},
+    {label:"Cut the call", act:() => { note(p, "good", "Did not share your OTP with a stranger."); return "Well done! Banks never ask for your OTP or PIN. You can report such calls on 1930."; }}
+  ]})},
+  expense("Light bill", "Electricity bill", 1500, "The fans and lights ran all month."),
+  {cat:"payday", s:"Pay day", run:p => paydaySpec(p, false)},
+  {cat:"bank", s:"Ayushman card", run:p => ({title:"Health camp: Ayushman card", body:"Some families can get a free Ayushman card. It pays hospital bills up to " + B(500000) + " a year. Your family can get it. The card is free.", options:[
+    {label:"Get the card", act:() => { p.ayushman = true; note(p, "good", "Got a free Ayushman health card."); return "Card made! Now hospital stays are covered for your family."; }},
+    {label:"Skip", act:() => { p.skippedAyushman = true; note(p, "cost", "Skipped the free Ayushman card.", SHIELD_BONUS, true); return "Okay. Let's hope nobody needs the hospital..."; }}
+  ]})},
+  hospital("Hospital", "Grandmother's operation", 20000, "Grandmother needs an operation and must stay in hospital."),
+  {cat:"choice", s:"Double money?", run:p => ({title:"Double your money?", body:"A neighbour says: \"Give me " + B(5000) + ". In one month I will give you " + B(10000) + "!\"", options:[
+    {label:"Give Rs 5,000", act:() => { note(p, "cost", "Gave money to a 'double your money' trick.", 5000); return pay(p, 5000) + " The neighbour ran away with the money. If it sounds too good to be true, it is a trick."; }},
+    {label:"Say no", act:() => { note(p, "good", "Said no to a 'double your money' trick."); return "Smart! Nobody can safely double money in one month. Real savings grow slowly."; }}
+  ]})},
+  huddle("Ask your parent: What is one thing our family could spend less on?"),
+  {cat:"trouble", s:"Tough month", run:p => ({title:"A tough month", body:"Work was slow this month. Your family earned " + B(4000) + " less.", options:[{label:"OK", act:() => {
+    note(p, "luck", "Tough month at work.", 4000);
+    return pay(p, 4000) + " Savings help in months like this.";
+  }}]})},
+  {cat:"bank", s:"PMJJBY", run:p => p.hasAccount
+    ? {title:"Life insurance (PMJJBY)", body:"Pay " + B(436) + " a year. If something happens to the earning person, the family gets " + B(200000) + ".", options:[
+        {label:"Join for Rs 436", act:() => { p.pmjjby = true; note(p, "good", "Joined PMJJBY life insurance."); return pay(p, 436) + " Your family has a safety net now."; }},
+        {label:"Skip", act:() => { note(p, "cost", "Skipped PMJJBY life insurance to save Rs 436.", SHIELD_BONUS - 436, true); return "Okay. You saved Rs 436, but your family has no safety net."; }}]}
+    : needsAccount(p, "PMJJBY life insurance")},
+  {cat:"payday", s:"Pay day", run:p => paydaySpec(p, false)},
+  {cat:"trouble", s:"Theft", run:p => {
+    const lost = round100(Math.max(p.cash,0) / 2);
+    return {title:"Thief at home!", body:"Someone broke into your house and found the money box.", options:[{label:"OK", act:() => {
+      if (lost <= 0) return "There was no money at home to steal. Phew!";
+      p.cash -= lost; cashLoss(p, lost, "a thief");
+      return "Half the cash at home, " + B(lost) + ", was stolen." + (p.bank > 0 ? " Your " + B(p.bank) + " in the bank is safe." : " Money in a bank would have been safe.");
+    }}]};
+  }},
+  {cat:"choice", s:"Lottery", run:p => ({title:"Lottery ticket", body:"Buy a lottery ticket for " + B(500) + "? The big prize is " + B(100000) + "!", options:[
+    {label:"Buy ticket", act:() => { note(p, "cost", "Bought a lottery ticket and lost.", 500); return pay(p, 500) + " You did not win. In a lottery, almost everyone loses."; }},
+    {label:"No thanks", act:() => { note(p, "good", "Did not buy a lottery ticket."); return "You kept your " + B(500) + ". Good call."; }}
+  ]})},
+  expense("Clinic visit", "Cough and cold", 1000, "A doctor visit and medicine. The Ayushman card is for hospital stays, not small doctor visits."),
+  {cat:"good", s:"Tuition work", run:p => ({title:"Extra work", body:"Didi teaches tuition to kids in the area on weekends.", options:[{label:"Collect Rs 3,000", act:() => { p.cash += 3000; return "Your family earned " + B(3000) + " extra."; }}]})},
+  {cat:"choice", s:"Roof leak", run:p => {
+    const total = Math.max(p.cash,0) + p.bank;
+    const own = total >= 10000, bank = p.hasAccount;
+    // extra cost of each way, compared with the best way that was open to you
+    const best = own ? 0 : (bank ? 1000 : 4000);
+    const judge = (extra, text, goodText) => { if (extra - best > 0) note(p, "cost", text, extra - best); else note(p, "good", goodText || "Paid for the roof in the smartest way you could."); };
+    return {title:"Rain is coming in through the roof", body:"The repair costs " + B(10000) + ". How will you pay?", options:[
+      {label: own ? "Use my own money" : "Use my own money (not enough)", disabled: !own, act:() => { judge(0, ""); return pay(p, 10000) + " No loan needed. This is why saving matters."; }},
+      {label: bank ? "Bank loan: pay back Rs 11,000" : "Bank loan (you need an account)", disabled: !bank, act:() => { p.debt += 11000; judge(1000, "Took a bank loan for the roof when your own savings were enough."); return "The bank lent you " + B(10000) + ". You will pay back " + B(11000) + " from your next pay days."; }},
+      {label:"Moneylender: pay back Rs 15,000", act:() => {
+        p.debt += 15000;
+        judge(5000, bank || own ? "Took a costly moneylender loan for the roof when a cheaper way was open." : "Took a costly moneylender loan for the roof. With a bank account, you could get a cheaper bank loan.");
+        return "The moneylender gave you " + B(10000) + " fast, but you must pay back " + B(15000) + ". That is " + B(5000) + " extra!";
+      }},
+      {label:"Don't fix it", act:() => { judge(4000, "Did not fix the roof. Rain spoiled things at home.", "Did not take a costly moneylender loan for the roof."); return pay(p, 4000) + " Rain spoiled clothes and books. You lost money anyway."; }}
+    ]};
+  }},
+  huddle("Ask your parent: What is one big dream for our family? How can we save for it?"),
+  {cat:"payday", s:"Pay day", run:p => paydaySpec(p, false)},
+  expense("Rent goes up", "Rent goes up", 3000, "The owner of the house asks for more rent."),
+  hospital("Dengue", "Dengue fever", 10000, "Your brother has dengue and stays in hospital for 4 days."),
+  {cat:"choice", s:"Diwali bonus", run:p => ({title:"Happy Diwali!", body:"Your boss gives you a Diwali bonus of " + B(4000) + ". What will you do with it?", options:[
+    {label: p.hasAccount ? "Save it in the bank" : "Save in bank (you need an account)", disabled: !p.hasAccount, act:() => { p.bank += 4000; p.saved += 4000; note(p, "good", "Saved your Diwali bonus in the bank."); return B(4000) + " is safe in the bank."; }},
+    {label:"Keep it at home", act:() => { p.cash += 4000; return B(4000) + " kept at home. Hope it stays safe."; }},
+    {label:"Spend it all on a big party", act:() => { note(p, "cost", "Spent the whole Diwali bonus on one party.", 4000); return "What a party! But the money is all gone."; }}
+  ]})},
+  expense("New uniform", "School uniform", 2000, "Your uniform is too small now."),
+  {cat:"choice", s:"Dream stop", stop:true, run:p => goalSpec(p, "Family dream stop", "You will get one more chance at the finish.")},
+  {cat:"bank", s:"Bank Mitra", run:p => {
+    if (!p.hasAccount) return {title:"A Bank Mitra visits", body:"A Bank Mitra (bank helper) comes to your area to open Jan Dhan accounts. It is free. You need Aadhaar and one photo.", options:[
+      {label:"Open account", act:() => openAccount(p, true)},
+      {label:"Not now", act:() => { note(p, "cost", "Said no to a bank account a second time."); return "Okay. Your money stays at home."; }}]};
+    const i = Math.round(p.bank * 0.03);
+    return {title:"Bank interest", body:"The bank adds a little extra money to your savings every year. This is called interest.", options:[{label:"OK", act:() => {
+      p.bank += i;
+      if (i > 0) note(p, "good", "Earned " + fmt(i) + " interest on your bank savings.");
+      return i > 0 ? "Your savings earned " + B(i) + " interest. Small, but it is free money for saving." : "You have no money in the bank, so you get no interest.";
+    }}]};
+  }},
+  {cat:"payday", s:"Pay day", run:p => paydaySpec(p, false)},
+  expense("Wedding gift", "Cousin's wedding", 3000, "Your cousin is getting married. You need a gift and travel money."),
+  {cat:"good", s:"Science fair", run:p => ({title:"Science fair prize!", body:"Your project won at the school science fair.", options:[{label:"Collect Rs 2,000", act:() => { p.cash += 2000; return "Well done! You won " + B(2000) + "."; }}]})},
+  {cat:"trouble", s:"Flood", run:p => {
+    const lost = Math.min(Math.max(p.cash,0), 5000);
+    return {title:"Flood in the lane", body:"Heavy rain! Water came into your house.", options:[{label:"OK", act:() => {
+      if (lost <= 0) return "There was no cash at home, so nothing was ruined.";
+      p.cash -= lost; cashLoss(p, lost, "the flood");
+      return B(lost) + " kept at home got wet and was ruined. Money in the bank is safe from floods.";
+    }}]};
+  }},
+  huddle("Tell your parent: One money lesson you learned this week."),
+  expense("School fees", "School fees", 4000, "Time to pay the school fees."),
+  expense("Water bill", "Water bill", 800, "The water bill has come."),
+  {cat:"finish", s:"Finish", stop:true, run:p => goalSpec(p, "You reached the finish!", "")}
+];
+const LAST = TILES.length - 1;
+
+function goalSpec(p, title, laterNote){
+  if (p.goalDone) return {title:title, body:"Your family dream is already done. Well played!", options:[{label:"OK"}]};
+  const total = Math.max(p.cash,0) + p.bank;
+  if (total >= GOAL_COST) return {title:title, body:"Your family dream (a bicycle, a sewing machine, or anything big you all want) costs " + B(GOAL_COST) + ". You have " + B(total) + ". Buy it now?", options:[
+    {label:"Buy our dream", act:() => { p.goalDone = true; note(p, "good", "Reached your family dream."); return pay(p, GOAL_COST) + " Your family dream came true!"; }},
+    {label:"Not now", act:() => "Okay. You keep your money for now."}]};
+  return {title:title, body:"Your family dream (a bicycle, a sewing machine, or anything big you all want) costs " + B(GOAL_COST) + ". You only have " + B(total) + ". " + laterNote, options:[{label:"OK", act:() => "Keep saving. Small savings every pay day add up."}]};
+}
+
+
+/* Board drawing */
+const PATH_D = "M150 548 C260 590 420 580 520 540 C620 500 700 560 800 540 C900 520 930 440 840 410 C740 380 620 440 520 420 C420 400 300 450 200 420 C100 390 88 318 180 300 C300 276 420 330 520 300 C620 270 700 300 762 252 C822 204 800 150 848 128";
+const START_XY = {x:92, y:552}, FINISH_XY = {x:905, y:98};
+let POS = [];
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function doodles(g){
+  const st = {fill:"none", stroke:"#8FA8A6", "stroke-width":2, "stroke-linecap":"round", "stroke-linejoin":"round"};
+  const tree = (x,y,s) => { const t = el("g", Object.assign({transform:"translate("+x+" "+y+") scale("+s+")"}, st), g);
+    el("path", {d:"M0 -40 L-12 -16 L-5 -16 L-16 4 L16 4 L5 -16 L12 -16 Z M0 4 L0 14"}, t); };
+  tree(975,300,.9); tree(955,318,.7); tree(700,212,.8); tree(722,222,.6); tree(40,470,.8); tree(612,478,.7);
+  el("path", Object.assign({d:"M380 222 L420 170 L445 198 L468 176 L512 222 M404 190 L414 200 L424 188"}, st), g);
+  const boat = el("g", Object.assign({transform:"translate(360 470)"}, st), g);
+  el("path", {d:"M-30 10 L30 10 L22 22 L-22 22 Z M0 10 L0 -34 L22 6 Z M0 -30 L-18 6 L0 6 M-40 30 q10 -5 20 0 t20 0 t20 0 t20 0"}, boat);
+  el("path", Object.assign({d:"M250 360 C300 330 360 390 420 355 C470 330 520 370 570 350", "stroke-dasharray":"6 7", stroke:"#C9A14A"}, st), g);
+  el("path", {d:"M440 352 l4 -12 l4 12 l12 4 l-12 4 l-4 12 l-4 -12 l-12 -4 Z", fill:"#C9A14A"}, g);
+  el("path", {d:"M880 470 l3 -9 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 Z", fill:"#C9A14A"}, g);
+}
+function buildBoard(){
+  const svg = $("#board"); svg.innerHTML = "";
+  el("rect", {x:0, y:0, width:1000, height:640, fill:"#F8F3ED"}, svg);
+  doodles(el("g", {}, svg));
+  // title block like the template
+  el("text", {x:44, y:118, "font-size":112, "font-weight":800, fill:"#16B364", "font-family":"Poppins, system-ui, sans-serif", "letter-spacing":-4}, svg).textContent = "Life";
+  const t1 = el("text", {x:48, y:152, "font-size":17, "font-weight":700, fill:"#1B2B40", "font-family":"Poppins, system-ui, sans-serif"}, svg); t1.textContent = "Choose your path. Build your story.";
+  const t2 = el("text", {x:48, y:178, "font-size":13, "font-weight":500, fill:"#5B6878", "font-family":"Poppins, system-ui, sans-serif"}, svg); t2.textContent = "Every choice you make changes your life.";
+  const pill = el("g", {transform:"translate(470 58)"}, svg);
+  el("rect", {x:-120, y:-22, width:240, height:44, rx:22, fill:"#1B2B40", stroke:"#C9A14A", "stroke-width":2.5}, pill);
+  const pt = el("text", {x:0, y:6, "text-anchor":"middle", "font-size":15, "font-weight":700, fill:"#EBD49A", "font-family":"Poppins, system-ui, sans-serif"}, pill); pt.textContent = "Financial Literacy, Day 5";
+
+  // ribbon
+  el("path", {d:PATH_D, fill:"none", stroke:"#C9A14A", "stroke-width":62, "stroke-linecap":"round", "stroke-linejoin":"round"}, svg);
+  const guide = el("path", {d:PATH_D, fill:"none", stroke:"#EFE4CF", "stroke-width":55, "stroke-linecap":"round", "stroke-linejoin":"round"}, svg);
+  const L = guide.getTotalLength(), a0 = 34, a1 = 30, n = TILES.length - 2, step = (L - a0 - a1) / n;
+  POS = [{x:START_XY.x, y:START_XY.y + 34}];
+  const tilesG = el("g", {}, svg);
+  for (let i = 1; i <= n; i++){
+    const s = a0 + step * (i - 0.5);
+    const p = guide.getPointAtLength(s), q = guide.getPointAtLength(Math.min(L, s + 1));
+    let ang = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI;
+    POS.push({x:p.x, y:p.y});
+    const t = TILES[i], c = CATS[t.cat];
+    const g = el("g", {transform:"translate(" + p.x.toFixed(1) + " " + p.y.toFixed(1) + ")"}, tilesG);
+    let textAng = ang; if (textAng > 90 || textAng < -90) textAng += 180;
+    if (t.stop){
+      el("circle", {r:33, fill:"#1B2B40", stroke:"#C9A14A", "stroke-width":3.5}, g);
+      const icon = el("path", {fill:"none", stroke:"#EBD49A", "stroke-width":2.4, "stroke-linecap":"round", "stroke-linejoin":"round"}, g);
+      icon.setAttribute("d", t.s === "Jan Dhan bank" ? "M-13 -4 L0 -13 L13 -4 Z M-10 -2 L-10 9 M-3 -2 L-3 9 M4 -2 L4 9 M10 -2 L10 9 M-14 12 L14 12"
+                                                  : "M0 12 C-18 0 -14 -14 0 -6 C14 -14 18 0 0 12 Z");
+      const lb = el("text", {y:50, "text-anchor":"middle", class:"tile-label", fill:"#1B2B40", "font-size":11}, g);
+      lb.textContent = t.s === "Jan Dhan bank" ? "Jan Dhan bank" : "Dream stop";
+      continue;
+    }
+    const r = el("g", {transform:"rotate(" + ang.toFixed(1) + ")"}, g);
+    el("rect", {x:-(step/2) + 2, y:-24, width:step - 4, height:48, rx:6, fill:c.fill}, r);
+    const tg = el("g", {transform:"rotate(" + (textAng - ang).toFixed(1) + ")"}, r);
+    const words = t.s.split(" "), lines = words.length > 1 ? [words.slice(0, Math.ceil(words.length/2)).join(" "), words.slice(Math.ceil(words.length/2)).join(" ")] : [t.s];
+    const tx = el("text", {"text-anchor":"middle", class:"tile-label", fill:c.text}, tg);
+    if (lines.some(l => l.length > 9)) tx.setAttribute("style", "font-size:8.6px");
+    lines.forEach((ln, k) => { const sp = el("tspan", {x:0, y: (lines.length === 1 ? 4 : (k === 0 ? -3 : 9))}, tx); sp.textContent = ln; });
+  }
+  // start and finish medallions
+  [[START_XY, "Start", "Rs 5,000 to begin"], [FINISH_XY, "Finish", "Count your score"]].forEach(([p, big, small]) => {
+    const g = el("g", {transform:"translate(" + p.x + " " + p.y + ")"}, svg);
+    el("circle", {r:64, fill:"#1B2B40", stroke:"#C9A14A", "stroke-width":4}, g);
+    el("circle", {r:56, fill:"none", stroke:"#C9A14A", "stroke-width":1.2}, g);
+    const a = el("text", {y:-14, "text-anchor":"middle", "font-size":24, "font-weight":800, fill:"#EBD49A", "font-family":"Poppins, system-ui, sans-serif"}, g); a.textContent = big;
+    const b = el("text", {y:5, "text-anchor":"middle", "font-size":10.5, "font-weight":600, fill:"#F4ECDD", "font-family":"Poppins, system-ui, sans-serif"}, g); b.textContent = small;
+  });
+  POS.push({x:FINISH_XY.x, y:FINISH_XY.y + 34});
+  el("g", {id:"tokens"}, svg);
+}
+const OFFS = [[-12,-12],[12,-12],[-12,12],[12,12]];
+function renderTokens(){
+  const g = $("#tokens"); if (!g) return;
+  players.forEach((p, i) => {
+    let tk = g.querySelector('[data-i="' + i + '"]');
+    if (!tk){
+      tk = el("g", {"data-i":i, class:"tok"}, g);
+      el("circle", {r:12, fill:p.color, stroke:"#FFFFFF", "stroke-width":3}, tk);
+      const t = el("text", {y:4.5, "text-anchor":"middle", "font-size":12, "font-weight":800, fill:"#fff", "font-family":"Poppins, system-ui, sans-serif"}, tk);
+      t.textContent = p.name.charAt(0).toUpperCase();
+    }
+    const pos = POS[p.pos];
+    tk.style.transform = "translate(" + (pos.x + OFFS[i][0]) + "px," + (pos.y + OFFS[i][1]) + "px)";
+    tk.classList.toggle("now", i === cur && !p.finished);
+  });
+  const now = g.querySelector(".now"); if (now) g.appendChild(now);
+}
+function renderPlayers(){
+  $("#plist").innerHTML = players.map((p, i) => {
+    const sh = (on, t, cls) => '<span class="' + (cls || "") + (on ? " on" : "") + '">' + t + "</span>";
+    return '<div class="prow' + (i === cur && !p.finished ? " active" : "") + '">' +
+      '<div class="top"><span class="d" style="background:' + p.color + '"></span>' + esc(p.name) + (p.finished ? " <small>finished</small>" : "") + "</div>" +
+      '<div class="m"><span>Cash <b>' + fmt(p.cash) + '</b></span><span>Bank <b>' + (p.hasAccount ? fmt(p.bank) : "none") + '</b></span>' + (p.debt ? '<span class="loan">Loan <b>' + fmt(p.debt) + "</b></span>" : "") + "</div>" +
+      '<div class="s">' + sh(p.hasAccount, "Jan Dhan") + sh(p.pmsby, "PMSBY") + sh(p.pmjjby, "PMJJBY") + sh(p.ayushman, "Ayushman") + sh(p.goalDone, "Dream", "dream") + "</div></div>";
+  }).join("");
+  const p = players[cur];
+  $("#nowName").textContent = p ? p.name : "-";
+  $("#nowName").style.color = p ? p.color : "";
+  $("#nowJob").textContent = p && p.job ? "Wants to become: " + p.job : "";
+}
+function renderLegend(){
+  $("#legend").innerHTML = ["payday","expense","bank","trouble","choice","huddle"].map(k => '<span><i style="background:' + CATS[k].fill + '"></i>' + CATS[k].label + "</span>").join("");
+}
+
+/* Dice */
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function drawDie(n){
+  const d = $("#die"); d.innerHTML = "";
+  for (let k = 0; k < 9; k++){ const s = document.createElement("span"); s.className = "pip" + (PIPS[n].includes(k) ? " on" : ""); d.appendChild(s); }
+  d.setAttribute("aria-label", "Dice shows " + n);
+}
+async function animateDice(){
+  const result = rollDie();
+  if (!reduceMotion){ for (let k = 0; k < 10; k++){ drawDie(1 + (k * 5 + result) % 6); $("#die").classList.toggle("wob"); await sleep(70); } $("#die").classList.remove("wob"); }
+  drawDie(result); return result;
+}
+
+/* Card */
+function showSpec(spec, cat, p){
+  return new Promise(resolve => {
+    const ov = $("#overlay"), c = CATS[cat];
+    const chip = $("#mChip"); chip.textContent = c.label; chip.style.background = c.fill; chip.style.color = c.text;
+    $("#mWho").textContent = p.name + "'s turn";
+    $("#mTitle").textContent = spec.title; $("#mBody").innerHTML = spec.body;
+    const box = $("#mOpts"); box.innerHTML = "";
+    const opts = (spec.options && spec.options.length) ? spec.options : [{label:"Continue"}];
+    const close = () => { ov.hidden = true; resolve(); };
+    opts.forEach(o => {
+      const b = document.createElement("button");
+      b.className = "btn" + (opts.length === 1 ? " main" : ""); b.textContent = o.label;
+      if (o.disabled) b.disabled = true;
+      b.addEventListener("click", () => {
+        const out = o.act ? o.act() : null; renderPlayers();
+        if (!out){ close(); return; }
+        $("#mBody").innerHTML = out; box.innerHTML = "";
+        const k = document.createElement("button"); k.className = "btn main"; k.textContent = "Continue";
+        k.addEventListener("click", close); box.appendChild(k); k.focus();
+      });
+      box.appendChild(b);
+    });
+    ov.hidden = false;
+    const f = box.querySelector("button:not([disabled])"); if (f) f.focus();
+  });
+}
+
+/* Turns */
+async function takeTurn(){
+  if (busy) return;
+  const p = players[cur]; if (!p || p.finished) return;
+  busy = true; $("#rollBtn").disabled = true;
+  const n = await animateDice(); await sleep(250);
+  for (let i = 0; i < n; i++){
+    if (p.pos >= LAST) break;
+    p.pos++; renderTokens(); await sleep(300);
+    const t = TILES[p.pos];
+    if (t.cat === "payday" && i < n - 1){ await showSpec(paydaySpec(p, true), "payday", p); renderPlayers(); }
+    if (t.stop) break;
+  }
+  const t = TILES[p.pos];
+  await showSpec(t.run(p), t.cat, p);
+  if (p.pos === LAST) p.finished = true;
+  if (players.every(q => q.finished)){ busy = false; endGame(); return; }
+  do { cur = (cur + 1) % players.length; } while (players[cur].finished);
+  renderTokens(); renderPlayers();
+  busy = false; $("#rollBtn").disabled = false; $("#rollBtn").focus();
+}
+function scoreOf(p){
+  const money = Math.max(p.cash,0) + p.bank - p.debt;
+  const shields = [p.hasAccount, p.pmsby, p.pmjjby, p.ayushman].filter(Boolean).length;
+  return {money:money, shields:shields, total:money + (p.goalDone ? GOAL_BONUS : 0) + shields * SHIELD_BONUS};
+}
+function reflectOf(p){
+  const sc = scoreOf(p);
+  const goods = p.story.filter(x => x.kind === "good").map(x => Object.assign({}, x));
+  const costs = p.story.filter(x => x.kind === "cost").map(x => Object.assign({}, x));
+  const lucks = p.story.filter(x => x.kind === "luck");
+  if (p.saved > 0) goods.push({text:"Saved " + fmt(p.saved) + " in the bank.", amt:0});
+  if (p.talks > 0) goods.push({text:"Had " + p.talks + " family money talk" + (p.talks > 1 ? "s" : "") + ".", amt:0});
+  if (p.hasAccount && p.saved === 0) costs.push({text:"Never put money in the bank, even with an account.", amt:0});
+  const moneyCost = costs.filter(x => !x.scoreOnly).reduce((a, x) => a + x.amt, 0);
+  const shieldCost = costs.filter(x => x.scoreOnly).reduce((a, x) => a + x.amt, 0);
+  const luck = lucks.reduce((a, x) => a + x.amt, 0);
+  let dreamGain = 0;
+  if (!p.goalDone){
+    const couldAfford = Math.max(p.cash,0) + p.bank + moneyCost >= GOAL_COST;
+    costs.push({text: couldAfford ? "Did not reach your family dream. With the money your choices cost, you could have." : "Did not reach your family dream.", amt:0});
+    if (couldAfford) dreamGain = GOAL_BONUS - GOAL_COST;
+  }
+  const could = sc.total + moneyCost + shieldCost + dreamGain;
+  const ratio = goods.length / Math.max(1, goods.length + costs.length);
+  const badge = ratio >= 0.75 ? ["Money smart!", ""] : ratio >= 0.5 ? ["Good try!", "mid"] : ["Learn and try again", "low"];
+  return {sc:sc, goods:goods, costs:costs, lucks:lucks, moneyCost:moneyCost, luck:luck, could:could, badge:badge};
+}
+function showReflect(i){
+  document.querySelectorAll("#tabs .btn").forEach((b, k) => b.classList.toggle("on", k === i));
+  const p = players[i], r = reflectOf(p);
+  const item = x => "<li><span>" + esc(x.text) + "</span>" + (x.amt ? "<b>" + (x.scoreOnly ? "-" + fmt(x.amt) + " score" : "-" + fmt(x.amt)) + "</b>" : "") + "</li>";
+  const list = (arr, empty) => arr.length ? "<ul>" + arr.map(item).join("") + "</ul>" : '<p class="empty">' + empty + "</p>";
+  let says = r.moneyCost > 0 ? "Your choices cost your family <b>" + fmt(r.moneyCost) + "</b>. " : "Your choices did not waste any money. Great! ";
+  says += r.luck > 0 ? "Bad luck cost you " + fmt(r.luck) + ", and that was not your fault." : "You had no big bad luck.";
+  $("#reflect").innerHTML =
+    '<div class="rhead"><span class="d" style="width:26px;height:26px;border-radius:50%;background:' + p.color + ';box-shadow:0 0 0 2px var(--navy)"></span><h3>' + esc(p.name) + (p.job ? ", future " + esc(p.job) : "") + '</h3><span class="badge ' + r.badge[1] + '">' + r.badge[0] + "</span></div>" +
+    '<div class="nums"><div><span>Your Life Score</span><b>' + fmt(r.sc.total) + "</b></div>" +
+    (r.could > r.sc.total ? '<div class="could"><span>With smarter choices, it could be about</span><b>' + fmt(r.could) + "</b></div>" : '<div class="could"><span>Could it be better?</span><b>No! Best choices.</b></div>') + "</div>" +
+    '<p class="says">' + says + "</p>" +
+    '<div class="lists"><div><h4 class="g">Smart choices</h4>' + list(r.goods, "No smart choices yet. Next time!") + "</div>" +
+    '<div><h4 class="c">Choices that cost you</h4>' + list(r.costs, "None. Well done!") + "</div></div>" +
+    '<div class="lists" style="grid-template-columns:1fr"><div><h4 class="l">Bad luck (not your fault)</h4>' + list(r.lucks, "No bad luck this game.") + "</div></div>" +
+    '<div class="ask">Talk together: If you play again, which one choice will you change? Which choice would you make in real life?</div>';
+}
+function endGame(){
+  $("#game").hidden = true; $("#end").hidden = false;
+  const ranked = players.map((p, i) => ({p:p, i:i, total:scoreOf(p).total})).sort((a,b) => b.total - a.total);
+  const top = ranked[0].total, w = ranked.filter(x => x.total === top).map(x => x.p.name);
+  $("#winnerLine").textContent = players.length === 1 ? "Well done, " + players[0].name + "! You finished the game."
+    : (w.length > 1 ? "It's a tie: " + w.join(" and ") : w[0] + " wins") + " with a Life Score of " + fmt(top) + "!";
+  $("#tabs").innerHTML = players.length > 1 ? players.map((p, i) => '<button class="btn">' + esc(p.name) + "</button>").join("") : "";
+  document.querySelectorAll("#tabs .btn").forEach((b, i) => b.addEventListener("click", () => showReflect(i)));
+  $("#allScores").innerHTML = players.length > 1 ? '<div class="tablewrap"><table><tr><th>Player</th><th>Life Score</th><th>Could have been</th><th>Choices cost</th><th>Bad luck</th></tr>' +
+    ranked.map(x => { const r = reflectOf(x.p); return '<tr class="' + (x.total === top ? "win" : "") + '"><td>' + esc(x.p.name) + "</td><td>" + fmt(x.total) + "</td><td>" + fmt(r.could) + "</td><td>" + fmt(r.moneyCost) + "</td><td>" + fmt(r.luck) + "</td></tr>"; }).join("") + "</table></div>" : "";
+  showReflect(ranked[0].i);
+  window.scrollTo(0,0);
+}
+/* Setup */
+function renderSetup(){
+  const old = [...document.querySelectorAll(".pl")].map(r => [r.querySelectorAll("input")[0].value, r.querySelectorAll("input")[1].value]);
+  let h = "";
+  for (let i = 0; i < nPlayers; i++){
+    const o = old[i] || ["", ""];
+    h += '<div class="pl"><span class="dot" style="background:' + TOKEN_COLORS[i] + '"></span>' +
+      '<input maxlength="16" placeholder="Name" aria-label="Player ' + (i+1) + ' name" value="' + esc(o[0]) + '">' +
+      '<input maxlength="24" placeholder="I want to become..." aria-label="Player ' + (i+1) + ' wants to become" value="' + esc(o[1]) + '"></div>';
+  }
+  $("#plRows").innerHTML = h;
+}
+function startGame(){
+  players = [...document.querySelectorAll(".pl")].map((r, i) => {
+    const ins = r.querySelectorAll("input");
+    return {name: ins[0].value.trim() || "Player " + (i + 1), job: ins[1].value.trim(), color: TOKEN_COLORS[i],
+      pos:0, cash:START_CASH, bank:0, debt:0, hasAccount:false, pmsby:false, pmjjby:false, ayushman:false, goalDone:false, finished:false, skippedAyushman:false, story:[], talks:0, paydays:0, saved:0};
+  });
+  cur = 0; busy = false;
+  $("#setup").hidden = true; $("#end").hidden = true; $("#game").hidden = false;
+  buildBoard(); renderLegend(); drawDie(1); renderTokens(); renderPlayers();
+  $("#rollBtn").disabled = false; $("#rollBtn").focus();
+}
+function toSetup(){ $("#overlay").hidden = true; $("#game").hidden = true; $("#end").hidden = true; $("#setup").hidden = false; busy = false; }
+
+document.querySelectorAll(".countrow .btn").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".countrow .btn").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); nPlayers = +b.dataset.n; renderSetup();
+}));
+$("#startBtn").addEventListener("click", startGame);
+$("#rollBtn").addEventListener("click", takeTurn);
+$("#restartBtn").addEventListener("click", () => { if (confirm("Restart the game? All progress will be lost.")) toSetup(); });
+$("#againBtn").addEventListener("click", toSetup);
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && !$("#game").hidden && $("#overlay").hidden && !busy && document.activeElement.tagName !== "INPUT"){ e.preventDefault(); takeTurn(); }
+});
+renderSetup();
+})();
+</script>
+</body>
+</html>
